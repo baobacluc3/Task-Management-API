@@ -5,6 +5,8 @@ import { Task, TaskStatus } from './entities/task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Project } from '../projects/entities/project.entity';
+import { QueryTaskDto } from './dto/query-task.dto';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 
 @Injectable()
 export class TasksService {
@@ -29,14 +31,57 @@ export class TasksService {
     return this.taskRepository.save(task);
   }
 
-  async findAll(projectId: string): Promise<Task[]> {
+  async findAll(
+    projectId: string,
+    query: QueryTaskDto,
+  ): Promise<PaginatedResult<Task>> {
     await this.ensureProjectExists(projectId);
 
-    return this.taskRepository.find({
-      where: { projectId },
-      relations: ['project', 'assignee'],
-      order: { createdAt: 'DESC' },
-    });
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+      status,
+      priority,
+      assigneeId,
+    } = query;
+
+    const sortableFields = new Set(['createdAt', 'updatedAt', 'title', 'dueDate']);
+    const orderByField = sortableFields.has(sortBy) ? sortBy : 'createdAt';
+
+    const queryBuilder = this.taskRepository
+      .createQueryBuilder('task')
+      .leftJoinAndSelect('task.project', 'project')
+      .leftJoinAndSelect('task.assignee', 'assignee')
+      .where('task.projectId = :projectId', { projectId });
+
+    if (status) {
+      queryBuilder.andWhere('task.status = :status', { status });
+    }
+
+    if (priority) {
+      queryBuilder.andWhere('task.priority = :priority', { priority });
+    }
+
+    if (assigneeId) {
+      queryBuilder.andWhere('task.assigneeId = :assigneeId', { assigneeId });
+    }
+
+    queryBuilder
+      .orderBy(`task.${orderByField}`, sortOrder)
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(projectId: string, id: string): Promise<Task> {

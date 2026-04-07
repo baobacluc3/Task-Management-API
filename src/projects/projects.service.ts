@@ -9,6 +9,8 @@ import { Project } from './entities/project.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { User, UserRole } from '../users/entities/user.entity';
+import { QueryProjectDto } from './dto/query-project.dto';
+import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 
 @Injectable()
 export class ProjectsService {
@@ -29,8 +31,40 @@ export class ProjectsService {
     return this.projectRepository.save(project);
   }
 
-  async findAll(): Promise<Project[]> {
-    return this.projectRepository.find({ relations: ['owner'] });
+  async findAll(query: QueryProjectDto): Promise<PaginatedResult<Project>> {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+      status,
+    } = query;
+
+    const sortableFields = new Set(['createdAt', 'updatedAt', 'title']);
+    const orderByField = sortableFields.has(sortBy) ? sortBy : 'createdAt';
+
+    const queryBuilder = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.owner', 'owner');
+
+    if (status) {
+      queryBuilder.where('project.status = :status', { status });
+    }
+
+    queryBuilder
+      .orderBy(`project.${orderByField}`, sortOrder)
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      data,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async findOne(id: string): Promise<Project> {

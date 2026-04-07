@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -20,6 +21,7 @@ import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { QueryTaskDto } from './dto/query-task.dto';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
@@ -49,8 +51,11 @@ export class TasksController {
   @ApiOperation({ summary: 'Get all tasks in a project' })
   @ApiParam({ name: 'projectId', type: String, format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Tasks fetched successfully' })
-  async findAll(@Param('projectId') projectId: string) {
-    const tasks = await this.tasksService.findAll(projectId);
+  async findAll(
+    @Param('projectId') projectId: string,
+    @Query() query: QueryTaskDto,
+  ) {
+    const tasks = await this.tasksService.findAll(projectId, query);
 
     return {
       success: true,
