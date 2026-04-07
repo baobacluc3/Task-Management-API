@@ -37,7 +37,7 @@ describe('AuthService', () => {
     role: UserRole.USER,
     isActive: true,
     refreshToken: 'hashed-refresh-token',
-    avatarUrl: null,
+    avatarUrl: undefined,
     projects: [],
     assignedTasks: [],
     createdAt: new Date('2025-01-01T00:00:00.000Z'),

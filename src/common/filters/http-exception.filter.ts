@@ -26,9 +26,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
       statusCode = HttpStatus.BAD_REQUEST;
       message = 'Database query failed';
       error = 'Query Failed';
-    } else if (exception instanceof HttpException) {
-      statusCode = exception.getStatus();
-      const exceptionResponse = exception.getResponse();
+    } else if (
+      exception &&
+      typeof exception === 'object' &&
+      'getStatus' in exception &&
+      'getResponse' in exception
+    ) {
+      const httpException = exception as HttpException;
+      statusCode = httpException.getStatus();
+      const exceptionResponse = httpException.getResponse();
 
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
@@ -37,14 +43,14 @@ export class HttpExceptionFilter implements ExceptionFilter {
           message?: string | string[];
           error?: string;
         };
+
         message = responseBody.message ?? message;
-        error = responseBody.error ?? exception.name;
-      } else {
-        message = exception.message;
+        error = responseBody.error ?? 'Http Exception';
       }
-    } else if (exception instanceof Error) {
-      message = exception.message;
-      error = exception.name;
+    } else if (exception && typeof exception === 'object') {
+      const genericException = exception as { message?: string; name?: string };
+      message = genericException.message ?? message;
+      error = genericException.name ?? error;
     }
 
     response.status(statusCode).json({
