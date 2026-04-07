@@ -11,17 +11,14 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
 import { RefreshAuthenticatedUser } from './types/auth.types';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
-import { MAIL_JOBS, MAIL_QUEUE } from '../mail/constants/mail-queue.constants';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
-    @InjectQueue(MAIL_QUEUE)
-    private readonly mailQueue: Queue,
+    private readonly mailService: MailService,
   ) {}
 
   async hashPassword(password: string): Promise<string> {
@@ -72,10 +69,7 @@ export class AuthService {
       password: hashed,
     });
 
-    await this.mailQueue.add(MAIL_JOBS.SEND_WELCOME_EMAIL, {
-      email: user.email,
-      fullName: user.fullName,
-    });
+    await this.mailService.sendWelcomeEmail(user.email, user.fullName);
 
     const tokens = await this.generateTokens(user);
 

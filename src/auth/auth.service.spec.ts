@@ -1,13 +1,7 @@
-jest.mock('@nestjs/bull', () => ({
-  InjectQueue: () => () => undefined,
-}), { virtual: true });
-jest.mock('bull', () => ({}), { virtual: true });
-
-
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
-import { MAIL_JOBS } from '../mail/constants/mail-queue.constants';
+import { MailService } from '../mail/mail.service';
 import { User, UserRole } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 
@@ -25,9 +19,9 @@ describe('AuthService', () => {
     sign: jest.fn(),
   } as unknown as jest.Mocked<JwtService>;
 
-  const mailQueueMock = {
-    add: jest.fn(),
-  };
+  const mailServiceMock = {
+    sendWelcomeEmail: jest.fn(),
+  } as unknown as jest.Mocked<MailService>;
 
   const baseUser: User = {
     id: 'user-id-1',
@@ -46,7 +40,7 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    authService = new AuthService(usersServiceMock, jwtServiceMock, mailQueueMock as any);
+    authService = new AuthService(usersServiceMock, jwtServiceMock, mailServiceMock);
   });
 
   describe('register', () => {
@@ -73,10 +67,10 @@ describe('AuthService', () => {
         password: 'hashed-new-password',
         fullName: 'John Doe',
       });
-      expect(mailQueueMock.add).toHaveBeenCalledWith(MAIL_JOBS.SEND_WELCOME_EMAIL, {
-        email: createdUser.email,
-        fullName: createdUser.fullName,
-      });
+      expect(mailServiceMock.sendWelcomeEmail).toHaveBeenCalledWith(
+        createdUser.email,
+        createdUser.fullName,
+      );
       expect(result).toEqual({
         success: true,
         data: {
@@ -105,7 +99,7 @@ describe('AuthService', () => {
       ).rejects.toBeInstanceOf(BadRequestException);
 
       expect(usersServiceMock.create).not.toHaveBeenCalled();
-      expect(mailQueueMock.add).not.toHaveBeenCalled();
+      expect(mailServiceMock.sendWelcomeEmail).not.toHaveBeenCalled();
     });
   });
 

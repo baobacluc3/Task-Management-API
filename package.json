@@ -49,11 +49,10 @@
     "socket.io": "^4.8.1",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.28",
-    "@nestjs/bull": "^11.0.4",
-    "bull": "^4.16.5",
     "nodemailer": "^7.0.4",
     "@nestjs/throttler": "^6.4.0",
-    "helmet": "^8.1.0"
+    "helmet": "^8.1.0",
+    "dotenv": "^16.6.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
