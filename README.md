@@ -72,6 +72,128 @@ npm run start:prod
 
 API base URL mặc định: `http://localhost:3000/api/v1`
 
+## Quick start (Docker + local app)
+
+Nếu bạn muốn chạy nhanh toàn bộ stack ở local:
+
+### 1) Cập nhật `.env` tối thiểu cho database
+
+```env
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=postgres
+DB_NAME=task_management
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+JWT_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+```
+
+### 2) Start PostgreSQL + Redis bằng Docker
+
+```bash
+docker compose up -d
+```
+
+Kiểm tra container:
+
+```bash
+docker compose ps
+```
+
+### 3) Chạy migrations
+
+```bash
+npx typeorm-ts-node-commonjs migration:run -d ormconfig.ts
+```
+
+### 4) Start API
+
+```bash
+npm run start:dev
+```
+
+Khi chạy thành công:
+
+- API: `http://localhost:3000/api/v1`
+- Swagger UI: `http://localhost:3000/api/docs`
+
+## Demo luồng chính bằng `curl`
+
+> Các endpoint phía dưới đã bao gồm prefix `api/v1`.
+
+### 1) Register
+
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "demo@example.com",
+    "password": "Password123!",
+    "firstName": "Demo",
+    "lastName": "User"
+  }'
+```
+
+### 2) Login và lấy access token
+
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "demo@example.com",
+    "password": "Password123!"
+  }'
+```
+
+Lưu `accessToken` từ response vào shell:
+
+```bash
+export ACCESS_TOKEN="<paste_access_token_here>"
+```
+
+### 3) Tạo project
+
+```bash
+curl -X POST http://localhost:3000/api/v1/projects \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Website Redesign",
+    "description": "Q2 planning project"
+  }'
+```
+
+Lưu `projectId` từ response:
+
+```bash
+export PROJECT_ID="<paste_project_id_here>"
+```
+
+### 4) Tạo task trong project
+
+```bash
+curl -X POST http://localhost:3000/api/v1/projects/$PROJECT_ID/tasks \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Create wireframes",
+    "description": "Landing page + dashboard",
+    "status": "TODO",
+    "priority": "HIGH"
+  }'
+```
+
+### 5) Lấy danh sách task
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/projects/$PROJECT_ID/tasks?page=1&limit=10" \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```
+
 ## Environment variables
 
 | Variable | Required | Default | Mô tả |
