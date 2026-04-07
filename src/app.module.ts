@@ -11,6 +11,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     ProjectsModule,
     TasksModule,
     CloudinaryModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}
