@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -23,6 +24,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { AuthenticatedUser } from '../auth/types/auth.types';
 import { QueryProjectDto } from './dto/query-project.dto';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @ApiTags('Projects')
 @ApiBearerAuth()
@@ -48,6 +50,8 @@ export class ProjectsController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60)
   @ApiOperation({ summary: 'Get all projects' })
   @ApiResponse({ status: 200, description: 'Projects fetched successfully' })
   async findAll(@Query() query: QueryProjectDto) {
@@ -61,6 +65,8 @@ export class ProjectsController {
   }
 
   @Get(':id')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(60)
   @ApiOperation({ summary: 'Get project by id' })
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiResponse({ status: 200, description: 'Project fetched successfully' })

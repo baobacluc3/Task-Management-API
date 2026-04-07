@@ -1,8 +1,10 @@
 import {
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
@@ -10,6 +12,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { QueryProjectDto } from './dto/query-project.dto';
+import { Cache } from 'cache-manager';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 
 @Injectable()
@@ -17,6 +20,7 @@ export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async create(
@@ -28,7 +32,11 @@ export class ProjectsService {
       ownerId: user.id,
     });
 
-    return this.projectRepository.save(project);
+    const createdProject = await this.projectRepository.save(project);
+
+    await this.invalidateProjectCache();
+
+    return createdProject;
   }
 
   async findAll(query: QueryProjectDto): Promise<PaginatedResult<Project>> {
@@ -86,7 +94,11 @@ export class ProjectsService {
 
     Object.assign(project, updateProjectDto);
 
-    return this.projectRepository.save(project);
+    const createdProject = await this.projectRepository.save(project);
+
+    await this.invalidateProjectCache();
+
+    return createdProject;
   }
 
   async remove(id: string, user: User) {
@@ -94,12 +106,17 @@ export class ProjectsService {
     this.ensureCanManageProject(project, user);
 
     await this.projectRepository.remove(project);
+    await this.invalidateProjectCache();
 
     return {
       success: true,
       data: null,
       message: 'Delete project successfully',
     };
+  }
+
+  private async invalidateProjectCache(): Promise<void> {
+    await this.cacheManager.reset();
   }
 
   private ensureCanManageProject(project: Project, user: User): void {
