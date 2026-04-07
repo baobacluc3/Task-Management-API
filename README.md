@@ -1,98 +1,109 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Task Management API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+![NestJS](https://img.shields.io/badge/NestJS-11.x-E0234E?logo=nestjs)
+![Node.js](https://img.shields.io/badge/Node.js-20%2B-43853D?logo=node.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?logo=postgresql)
+![Redis](https://img.shields.io/badge/Redis-Cache%20%26%20Queue-DC382D?logo=redis)
+![License](https://img.shields.io/badge/license-UNLICENSED-lightgrey)
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+RESTful API cho hệ thống quản lý công việc theo project, xây dựng bằng NestJS. Dự án hỗ trợ xác thực JWT + refresh token, phân quyền role, quản lý tasks/projects, upload avatar Cloudinary, cache Redis, queue xử lý email với Bull và tài liệu API bằng Swagger.
 
-## Description
+## Tech stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **Framework:** NestJS 11
+- **Language:** TypeScript
+- **Database:** PostgreSQL + TypeORM
+- **Auth:** Passport (Local/JWT), JWT access/refresh token
+- **Cache/Queue:** Redis, `@nestjs/cache-manager`, Bull
+- **File storage:** Cloudinary
+- **Mail:** Nodemailer
+- **Realtime:** Socket.IO Gateway
+- **Documentation:** Swagger (`@nestjs/swagger`)
 
-## Project setup
+## Kiến trúc tổng quan
+
+Ứng dụng được tổ chức theo module của NestJS:
+
+- `AuthModule`: đăng ký/đăng nhập/refresh/logout/profile
+- `UsersModule`: quản lý người dùng, upload avatar
+- `ProjectsModule`: CRUD project
+- `TasksModule`: CRUD task theo project + cập nhật trạng thái
+- `NotificationsModule`: websocket notifications
+- `MailModule`: queue và gửi email
+- `CloudinaryModule`: upload/xóa file ảnh
+
+Luồng chính:
+
+1. Client gọi API qua prefix `api/v1`
+2. `JwtAuthGuard` + `RolesGuard` bảo vệ các endpoint cần xác thực
+3. Service xử lý business logic + TypeORM thao tác PostgreSQL
+4. Redis dùng cho cache và hàng đợi background job
+5. Swagger được expose tại `/api/docs`
+
+## Chạy local
+
+### 1) Cài dependencies
 
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
+### 2) Cấu hình biến môi trường
+
+Tạo file `.env` (hoặc cập nhật file có sẵn) theo mẫu ở mục **Environment variables**.
+
+### 3) Chuẩn bị hạ tầng local
+
+- PostgreSQL
+- Redis
+- (Tuỳ chọn) SMTP server local như MailHog/Mailpit
+
+### 4) Chạy ứng dụng
 
 ```bash
 # development
-$ npm run start
+npm run start:dev
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# production build + run
+npm run build
+npm run start:prod
 ```
 
-## Run tests
+API base URL mặc định: `http://localhost:3000/api/v1`
 
-```bash
-# unit tests
-$ npm run test
+## Environment variables
 
-# e2e tests
-$ npm run test:e2e
+| Variable | Required | Default | Mô tả |
+|---|---:|---|---|
+| `DB_HOST` | ✅ | - | PostgreSQL host |
+| `DB_PORT` | ❌ | `5432` | PostgreSQL port |
+| `DB_USERNAME` | ✅ | - | PostgreSQL username |
+| `DB_PASSWORD` | ✅ | - | PostgreSQL password |
+| `DB_NAME` | ✅ | - | PostgreSQL database name |
+| `JWT_SECRET` | ❌ | `secret` | Secret ký access token |
+| `JWT_REFRESH_SECRET` | ❌ | `refresh_secret` | Secret ký refresh token |
+| `REDIS_HOST` | ❌ | `localhost` | Redis host |
+| `REDIS_PORT` | ❌ | `6379` | Redis port |
+| `SMTP_HOST` | ❌ | `localhost` | SMTP host |
+| `SMTP_PORT` | ❌ | `1025` | SMTP port |
+| `SMTP_SECURE` | ❌ | `false` | Bật/tắt TLS SMTP |
+| `SMTP_USER` | ❌ | empty | SMTP username |
+| `SMTP_PASS` | ❌ | empty | SMTP password |
+| `SMTP_FROM` | ❌ | `no-reply@task-management.local` | Email người gửi mặc định |
+| `CLOUDINARY_CLOUD_NAME` | ✅ (nếu upload ảnh) | - | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | ✅ (nếu upload ảnh) | - | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | ✅ (nếu upload ảnh) | - | Cloudinary API secret |
+| `CORS_WHITELIST` | ❌ | `http://localhost:3000` | Danh sách origin cho CORS, ngăn cách bằng dấu phẩy |
 
-# test coverage
-$ npm run test:cov
-```
+## API docs link
 
-## Deployment
+- Local Swagger UI: `http://localhost:3000/api/docs`
+- OpenAPI JSON: `http://localhost:3000/api/docs-json`
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Deploy link
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- Production API: `https://your-domain.example.com/api/v1`
+- Production Swagger: `https://your-domain.example.com/api/docs`
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+> Cập nhật các URL deploy ở trên theo môi trường thực tế của bạn.
