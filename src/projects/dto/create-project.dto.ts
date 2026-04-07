@@ -8,7 +8,9 @@ export class CreateProjectDto {
   @MaxLength(255)
   title: string;
 
-  @ApiPropertyOptional({ example: 'Build backend APIs for task/project tracking.' })
+  @ApiPropertyOptional({
+    example: 'Build backend APIs for task/project tracking.',
+  })
   @IsOptional()
   @IsString()
   description?: string;

@@ -17,7 +17,10 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  async create(createProjectDto: CreateProjectDto, user: User): Promise<Project> {
+  async create(
+    createProjectDto: CreateProjectDto,
+    user: User,
+  ): Promise<Project> {
     const project = this.projectRepository.create({
       ...createProjectDto,
       ownerId: user.id,
