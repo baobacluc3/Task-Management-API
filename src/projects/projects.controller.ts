@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -21,6 +22,7 @@ import { UpdateProjectDto } from './dto/update-project.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../common/decorators/get-user.decorator';
 import type { AuthenticatedUser } from '../auth/types/auth.types';
+import { QueryProjectDto } from './dto/query-project.dto';
 
 @ApiTags('Projects')
 @ApiBearerAuth()
@@ -48,8 +50,8 @@ export class ProjectsController {
   @Get()
   @ApiOperation({ summary: 'Get all projects' })
   @ApiResponse({ status: 200, description: 'Projects fetched successfully' })
-  async findAll() {
-    const projects = await this.projectsService.findAll();
+  async findAll(@Query() query: QueryProjectDto) {
+    const projects = await this.projectsService.findAll(query);
 
     return {
       success: true,
