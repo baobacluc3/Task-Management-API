@@ -11,6 +11,7 @@ import { UsersService } from '../users/users.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { MAIL_JOBS, MAIL_QUEUE } from '../mail/constants/mail-queue.constants';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
 export class TasksService {
@@ -22,6 +23,7 @@ export class TasksService {
     private readonly usersService: UsersService,
     @InjectQueue(MAIL_QUEUE)
     private readonly mailQueue: Queue,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(projectId: string, createTaskDto: CreateTaskDto): Promise<Task> {
@@ -37,8 +39,11 @@ export class TasksService {
 
     const createdTask = await this.taskRepository.save(task);
 
+    this.notificationsGateway.notifyTaskCreated(createdTask);
+
     if (createdTask.assigneeId) {
       await this.enqueueTaskAssignedEmail(createdTask.assigneeId, createdTask.title);
+      this.notificationsGateway.notifyTaskAssigned(createdTask);
     }
 
     return createdTask;
@@ -129,8 +134,11 @@ export class TasksService {
 
     const updatedTask = await this.taskRepository.save(task);
 
+    this.notificationsGateway.notifyTaskUpdated(updatedTask);
+
     if (updatedTask.assigneeId && updatedTask.assigneeId !== previousAssigneeId) {
       await this.enqueueTaskAssignedEmail(updatedTask.assigneeId, updatedTask.title);
+      this.notificationsGateway.notifyTaskAssigned(updatedTask);
     }
 
     return updatedTask;
