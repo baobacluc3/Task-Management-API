@@ -7,6 +7,10 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { Project } from '../projects/entities/project.entity';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { UsersService } from '../users/users.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { MAIL_JOBS, MAIL_QUEUE } from '../mail/constants/mail-queue.constants';
 
 @Injectable()
 export class TasksService {
@@ -15,6 +19,9 @@ export class TasksService {
     private readonly taskRepository: Repository<Task>,
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
+    private readonly usersService: UsersService,
+    @InjectQueue(MAIL_QUEUE)
+    private readonly mailQueue: Queue,
   ) {}
 
   async create(projectId: string, createTaskDto: CreateTaskDto): Promise<Task> {
@@ -28,7 +35,13 @@ export class TasksService {
         : undefined,
     });
 
-    return this.taskRepository.save(task);
+    const createdTask = await this.taskRepository.save(task);
+
+    if (createdTask.assigneeId) {
+      await this.enqueueTaskAssignedEmail(createdTask.assigneeId, createdTask.title);
+    }
+
+    return createdTask;
   }
 
   async findAll(
@@ -105,6 +118,7 @@ export class TasksService {
     updateTaskDto: UpdateTaskDto,
   ): Promise<Task> {
     const task = await this.findOne(projectId, id);
+    const previousAssigneeId = task.assigneeId;
 
     Object.assign(task, {
       ...updateTaskDto,
@@ -113,7 +127,13 @@ export class TasksService {
         : updateTaskDto.dueDate,
     });
 
-    return this.taskRepository.save(task);
+    const updatedTask = await this.taskRepository.save(task);
+
+    if (updatedTask.assigneeId && updatedTask.assigneeId !== previousAssigneeId) {
+      await this.enqueueTaskAssignedEmail(updatedTask.assigneeId, updatedTask.title);
+    }
+
+    return updatedTask;
   }
 
   async remove(projectId: string, id: string) {
@@ -140,6 +160,19 @@ export class TasksService {
     task.status = status;
 
     return this.taskRepository.save(task);
+  }
+
+  private async enqueueTaskAssignedEmail(
+    assigneeId: string,
+    taskTitle: string,
+  ): Promise<void> {
+    const assignee = await this.usersService.findById(assigneeId);
+
+    await this.mailQueue.add(MAIL_JOBS.SEND_TASK_ASSIGNED_EMAIL, {
+      email: assignee.email,
+      fullName: assignee.fullName,
+      taskTitle,
+    });
   }
 
   private async ensureProjectExists(projectId: string): Promise<void> {
