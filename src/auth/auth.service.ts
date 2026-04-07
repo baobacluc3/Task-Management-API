@@ -9,6 +9,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { User } from '../users/entities/user.entity';
+import { RefreshAuthenticatedUser } from './types/auth.types';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +28,13 @@ export class AuthService {
     return bcrypt.compare(password, hash);
   }
 
-  async generateTokens(user: any) {
+  private sanitizeUser(user: User): Omit<User, 'password'> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...safeUser } = user;
+    return safeUser;
+  }
+
+  async generateTokens(user: User) {
     const payload = { sub: user.id, email: user.email };
 
     const accessToken = this.jwtService.sign(payload, {
@@ -61,11 +69,9 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user);
 
-    const { password, refreshToken, ...result } = user;
-
     return {
       success: true,
-      data: { user: result, ...tokens },
+      data: { user: this.sanitizeUser(user), ...tokens },
       message: 'Register successfully',
     };
   }
@@ -79,21 +85,19 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user);
 
-    const { password, refreshToken, ...result } = user;
-
     return {
       success: true,
-      data: { user: result, ...tokens },
+      data: { user: this.sanitizeUser(user), ...tokens },
       message: 'Login successfully',
     };
   }
 
-  async refreshTokens(user: any) {
+  async refreshTokens(user: RefreshAuthenticatedUser) {
     const dbUser = await this.usersService.findById(user.id);
 
     const isMatch = await this.comparePassword(
       user.refreshToken,
-      dbUser.refreshToken,
+      dbUser.refreshToken ?? '',
     );
 
     if (!isMatch) throw new UnauthorizedException();
