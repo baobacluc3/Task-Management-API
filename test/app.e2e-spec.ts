@@ -1,17 +1,3 @@
-jest.mock(
-  '@nestjs/bull',
-  () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { Inject } = require('@nestjs/common');
-    return {
-      InjectQueue: (name: string) => Inject(`BullQueue_${name}`),
-    };
-  },
-  { virtual: true },
-);
-
-jest.mock('bull', () => ({}), { virtual: true });
-
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
@@ -31,7 +17,6 @@ import { UsersService } from '../src/users/users.service';
 import { User } from '../src/users/entities/user.entity';
 import { Project } from '../src/projects/entities/project.entity';
 import { Task } from '../src/tasks/entities/task.entity';
-import { MAIL_QUEUE } from '../src/mail/constants/mail-queue.constants';
 
 describe('Auth Flow (e2e)', () => {
   let app: INestApplication<App>;
@@ -119,12 +104,6 @@ describe('Auth Flow (e2e)', () => {
         JwtStrategy,
         LocalStrategy,
         JwtRefreshStrategy,
-        {
-          provide: `BullQueue_${MAIL_QUEUE}`,
-          useValue: {
-            add: jest.fn().mockResolvedValue(undefined),
-          },
-        },
       ],
     }).compile();
 

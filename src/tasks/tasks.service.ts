@@ -8,10 +8,8 @@ import { Project } from '../projects/entities/project.entity';
 import { QueryTaskDto } from './dto/query-task.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 import { UsersService } from '../users/users.service';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
-import { MAIL_JOBS, MAIL_QUEUE } from '../mail/constants/mail-queue.constants';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class TasksService {
@@ -21,8 +19,7 @@ export class TasksService {
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     private readonly usersService: UsersService,
-    @InjectQueue(MAIL_QUEUE)
-    private readonly mailQueue: Queue,
+    private readonly mailService: MailService,
     private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
@@ -176,11 +173,11 @@ export class TasksService {
   ): Promise<void> {
     const assignee = await this.usersService.findById(assigneeId);
 
-    await this.mailQueue.add(MAIL_JOBS.SEND_TASK_ASSIGNED_EMAIL, {
-      email: assignee.email,
-      fullName: assignee.fullName,
+    await this.mailService.sendTaskAssignedEmail(
+      assignee.email,
+      assignee.fullName,
       taskTitle,
-    });
+    );
   }
 
   private async ensureProjectExists(projectId: string): Promise<void> {
