@@ -4,16 +4,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { redisStore } from 'cache-manager-redis-store';
 import databaseConfig from './config/database.config';
+import cloudinaryConfig from './config/cloudinary.config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig],
+      load: [databaseConfig, cloudinaryConfig],
     }),
 
     CacheModule.registerAsync({
@@ -45,6 +47,7 @@ import { TasksModule } from './tasks/tasks.module';
     AuthModule,
     ProjectsModule,
     TasksModule,
+    CloudinaryModule,
   ],
 })
 export class AppModule {}
