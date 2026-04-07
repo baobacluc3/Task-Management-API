@@ -9,6 +9,6 @@ export type RefreshJwtPayload = JwtPayload;
 
 export type AuthenticatedUser = User;
 
-export interface RefreshAuthenticatedUser extends User {
+export type RefreshAuthenticatedUser = Pick<User, 'id' | 'email'> & {
   refreshToken: string;
-}
+};
