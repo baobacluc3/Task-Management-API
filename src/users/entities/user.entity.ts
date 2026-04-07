@@ -8,6 +8,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Project } from '../../projects/entities/project.entity';
+import { Task } from '../../tasks/entities/task.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -43,6 +44,9 @@ export class User {
 
   @OneToMany(() => Project, (project) => project.owner)
   projects: Project[];
+
+  @OneToMany(() => Task, (task) => task.assignee)
+  assignedTasks: Task[];
 
   @CreateDateColumn()
   createdAt: Date;

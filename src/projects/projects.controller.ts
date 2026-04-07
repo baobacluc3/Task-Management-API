@@ -81,7 +81,11 @@ export class ProjectsController {
     @Body() updateProjectDto: UpdateProjectDto,
     @GetUser() user: AuthenticatedUser,
   ) {
-    const project = await this.projectsService.update(id, updateProjectDto, user);
+    const project = await this.projectsService.update(
+      id,
+      updateProjectDto,
+      user,
+    );
 
     return {
       success: true,
