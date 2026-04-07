@@ -1,8 +1,10 @@
-// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import databaseConfig from './config/database.config';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -23,6 +25,9 @@ import databaseConfig from './config/database.config';
         autoLoadEntities: true,
       }),
     }),
+    UsersModule,
+    AuthModule,
+    ProjectsModule,
   ],
 })
 export class AppModule {}

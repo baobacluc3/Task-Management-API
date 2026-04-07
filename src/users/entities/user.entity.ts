@@ -5,7 +5,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Project } from '../../projects/entities/project.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -38,6 +40,9 @@ export class User {
 
   @Column({ nullable: true })
   refreshToken?: string;
+
+  @OneToMany(() => Project, (project) => project.owner)
+  projects: Project[];
 
   @CreateDateColumn()
   createdAt: Date;
