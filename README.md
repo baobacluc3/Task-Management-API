@@ -72,9 +72,7 @@ npm run start:prod
 
 API base URL mặc định: `http://localhost:3000/api/v1`
 
-## Quick start (Docker + local app)
-
-Nếu bạn muốn chạy nhanh toàn bộ stack ở local:
+## Quick start (Local services, không dùng Docker)
 
 ### 1) Cập nhật `.env` tối thiểu cho database
 
@@ -92,25 +90,46 @@ JWT_SECRET=your_access_secret
 JWT_REFRESH_SECRET=your_refresh_secret
 ```
 
-### 2) Start PostgreSQL + Redis bằng Docker
+### 2) Chuẩn bị PostgreSQL local (qua pgAdmin 4)
+
+> Lưu ý: **pgAdmin 4 là công cụ quản trị**, không phải database engine. Bạn vẫn cần PostgreSQL server chạy local.
+
+Trong pgAdmin 4:
+
+1. Add New Server
+2. Tab **Connection**:
+   - Host name/address: `localhost`
+   - Port: `5432`
+   - Username: `postgres`
+   - Password: `postgres` (hoặc mật khẩu bạn đang dùng)
+3. Save và kết nối vào server PostgreSQL local.
+4. Tạo database mới tên `task_management`.
 
 ```bash
-docker compose up -d
+psql -U postgres -c "CREATE DATABASE task_management;"
 ```
 
-Kiểm tra container:
+Bạn có thể tạo DB bằng pgAdmin 4 (GUI) **hoặc** bằng lệnh `psql` ở trên.
+
+Sau đó đảm bảo PostgreSQL đang chạy trên host/port đã cấu hình trong `.env`
+(`localhost:5432` theo mặc định).
+
+### 3) Chuẩn bị Redis local
+
+Đảm bảo Redis đang chạy trên `REDIS_HOST` / `REDIS_PORT` trong `.env`
+(`localhost:6379` theo mặc định). Ví dụ:
 
 ```bash
-docker compose ps
+redis-server
 ```
 
-### 3) Chạy migrations
+### 4) Chạy migrations
 
 ```bash
 npx typeorm-ts-node-commonjs migration:run -d ormconfig.ts
 ```
 
-### 4) Start API
+### 5) Start API
 
 ```bash
 npm run start:dev
