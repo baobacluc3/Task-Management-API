@@ -1,5 +1,5 @@
 import { CacheModule } from '@nestjs/cache-manager';
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
@@ -14,6 +14,8 @@ import { TasksModule } from './tasks/tasks.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CustomThrottlerGuard } from './common/guards/throttler.guard';
+
+const logger = new Logger('CacheModule');
 
 @Module({
   imports: [
@@ -30,14 +32,23 @@ import { CustomThrottlerGuard } from './common/guards/throttler.guard';
     CacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          socket: {
-            host: configService.get<string>('REDIS_HOST', 'localhost'),
-            port: configService.get<number>('REDIS_PORT', 6379),
-          },
-        }),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        try {
+          return {
+            store: await redisStore({
+              socket: {
+                host: configService.get<string>('REDIS_HOST', 'localhost'),
+                port: configService.get<number>('REDIS_PORT', 6379),
+              },
+            }),
+          };
+        } catch (error) {
+          logger.warn(
+            'Redis cache is unavailable. Falling back to in-memory cache.',
+          );
+          return {};
+        }
+      },
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

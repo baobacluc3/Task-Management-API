@@ -12,7 +12,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { QueryProjectDto } from './dto/query-project.dto';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 
 @Injectable()
