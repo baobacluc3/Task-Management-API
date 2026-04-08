@@ -90,11 +90,26 @@ JWT_SECRET=your_access_secret
 JWT_REFRESH_SECRET=your_refresh_secret
 ```
 
-### 2) Chuẩn bị PostgreSQL local
+### 2) Chuẩn bị PostgreSQL local (qua pgAdmin 4)
+
+> Lưu ý: **pgAdmin 4 là công cụ quản trị**, không phải database engine. Bạn vẫn cần PostgreSQL server chạy local.
+
+Trong pgAdmin 4:
+
+1. Add New Server
+2. Tab **Connection**:
+   - Host name/address: `localhost`
+   - Port: `5432`
+   - Username: `postgres`
+   - Password: `postgres` (hoặc mật khẩu bạn đang dùng)
+3. Save và kết nối vào server PostgreSQL local.
+4. Tạo database mới tên `task_management`.
 
 ```bash
 psql -U postgres -c "CREATE DATABASE task_management;"
 ```
+
+Bạn có thể tạo DB bằng pgAdmin 4 (GUI) **hoặc** bằng lệnh `psql` ở trên.
 
 Sau đó đảm bảo PostgreSQL đang chạy trên host/port đã cấu hình trong `.env`
 (`localhost:5432` theo mặc định).
