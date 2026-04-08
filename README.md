@@ -72,9 +72,7 @@ npm run start:prod
 
 API base URL mặc định: `http://localhost:3000/api/v1`
 
-## Quick start (Docker + local app)
-
-Nếu bạn muốn chạy nhanh toàn bộ stack ở local:
+## Quick start (Local services, không dùng Docker)
 
 ### 1) Cập nhật `.env` tối thiểu cho database
 
@@ -92,31 +90,31 @@ JWT_SECRET=your_access_secret
 JWT_REFRESH_SECRET=your_refresh_secret
 ```
 
-### 2) Start PostgreSQL + Redis bằng Docker
+### 2) Chuẩn bị PostgreSQL local
 
 ```bash
-docker compose up -d
+psql -U postgres -c "CREATE DATABASE task_management;"
 ```
 
-Nếu chỉ muốn chạy PostgreSQL:
+Sau đó đảm bảo PostgreSQL đang chạy trên host/port đã cấu hình trong `.env`
+(`localhost:5432` theo mặc định).
+
+### 3) Chuẩn bị Redis local
+
+Đảm bảo Redis đang chạy trên `REDIS_HOST` / `REDIS_PORT` trong `.env`
+(`localhost:6379` theo mặc định). Ví dụ:
 
 ```bash
-docker compose up -d postgres
+redis-server
 ```
 
-Kiểm tra container:
-
-```bash
-docker compose ps
-```
-
-### 3) Chạy migrations
+### 4) Chạy migrations
 
 ```bash
 npx typeorm-ts-node-commonjs migration:run -d ormconfig.ts
 ```
 
-### 4) Start API
+### 5) Start API
 
 ```bash
 npm run start:dev
