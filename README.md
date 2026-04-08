@@ -72,15 +72,11 @@ npm run start:prod
 
 API base URL mặc định: `http://localhost:3000/api/v1`
 
-## Quick start (Local services, không dùng Docker)
+## Quick start (Docker + local app)
+
+Nếu bạn muốn chạy nhanh toàn bộ stack ở local:
 
 ### 1) Cập nhật `.env` tối thiểu cho database
-
-Tạo file `.env` từ template:
-
-```bash
-cp .env.example .env
-```
 
 ```env
 DB_HOST=localhost
@@ -96,62 +92,25 @@ JWT_SECRET=your_access_secret
 JWT_REFRESH_SECRET=your_refresh_secret
 ```
 
-### 2) Chuẩn bị PostgreSQL local (qua pgAdmin 4)
-
-> Lưu ý: **pgAdmin 4 là công cụ quản trị**, không phải database engine. Bạn vẫn cần PostgreSQL server chạy local.
-
-Trong pgAdmin 4:
-
-1. Add New Server
-2. Tab **Connection**:
-   - Host name/address: `localhost`
-   - Port: `5432`
-   - Username: `postgres`
-   - Password: `postgres` (hoặc mật khẩu bạn đang dùng)
-3. Save và kết nối vào server PostgreSQL local.
-4. Tạo database mới tên `task_management`.
+### 2) Start PostgreSQL + Redis bằng Docker
 
 ```bash
-psql -U postgres -c "CREATE DATABASE task_management;"
+docker compose up -d
 ```
 
-Bạn có thể tạo DB bằng pgAdmin 4 (GUI) **hoặc** bằng lệnh `psql` ở trên.
-
-Sau đó đảm bảo PostgreSQL đang chạy trên host/port đã cấu hình trong `.env`
-(`localhost:5432` theo mặc định).
-
-### 3) Chuẩn bị Redis local
-
-Đảm bảo Redis đang chạy trên `REDIS_HOST` / `REDIS_PORT` trong `.env`
-(`localhost:6379` theo mặc định). Ví dụ:
+Kiểm tra container:
 
 ```bash
-redis-server
+docker compose ps
 ```
 
-### 4) Chạy migrations
+### 3) Chạy migrations
 
 ```bash
 npx typeorm-ts-node-commonjs migration:run -d ormconfig.ts
 ```
 
-Nếu bạn generate migration và gặp lỗi:
-`No changes in database schema were found...`
-thì có nghĩa schema hiện tại không có thay đổi mới để generate.
-
-- Tạo migration rỗng:
-
-```bash
-npx typeorm-ts-node-commonjs migration:create src/migrations/Init
-```
-
-- Hoặc sau khi bạn đã thay đổi entity, generate migration:
-
-```bash
-npx typeorm-ts-node-commonjs migration:generate src/migrations/Init -d ormconfig.ts
-```
-
-### 5) Start API
+### 4) Start API
 
 ```bash
 npm run start:dev
