@@ -4,6 +4,10 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
+const isTsRuntime =
+  process.argv.some((arg) => arg.includes('ts-node')) ||
+  __filename.endsWith('.ts');
+
 export default new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST,
@@ -11,7 +15,9 @@ export default new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/migrations/*.js'],
+  entities: [isTsRuntime ? 'src/**/*.entity.ts' : 'dist/**/*.entity.js'],
+  migrations: [
+    isTsRuntime ? 'src/migrations/*.ts' : 'dist/migrations/*.js',
+  ],
   synchronize: false,
 });

@@ -85,6 +85,7 @@ DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_NAME=task_management
 
+REDIS_ENABLED=false
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
@@ -205,6 +206,7 @@ curl -X GET "http://localhost:3000/api/v1/projects/$PROJECT_ID/tasks?page=1&limi
 | `DB_NAME` | ✅ | - | PostgreSQL database name |
 | `JWT_SECRET` | ❌ | `secret` | Secret ký access token |
 | `JWT_REFRESH_SECRET` | ❌ | `refresh_secret` | Secret ký refresh token |
+| `REDIS_ENABLED` | ❌ | `false` | Bật/tắt Redis cache; nếu `false` sẽ dùng memory cache |
 | `REDIS_HOST` | ❌ | `localhost` | Redis host |
 | `REDIS_PORT` | ❌ | `6379` | Redis port |
 | `SMTP_HOST` | ❌ | `localhost` | SMTP host |
