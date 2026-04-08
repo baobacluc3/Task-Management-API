@@ -98,6 +98,12 @@ JWT_REFRESH_SECRET=your_refresh_secret
 docker compose up -d
 ```
 
+Nếu chỉ muốn chạy PostgreSQL:
+
+```bash
+docker compose up -d postgres
+```
+
 Kiểm tra container:
 
 ```bash
