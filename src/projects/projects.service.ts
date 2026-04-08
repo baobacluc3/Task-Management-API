@@ -12,7 +12,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { User, UserRole } from '../users/entities/user.entity';
 import { QueryProjectDto } from './dto/query-project.dto';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
 
 @Injectable()
@@ -116,7 +116,19 @@ export class ProjectsService {
   }
 
   private async invalidateProjectCache(): Promise<void> {
-    await this.cacheManager.reset();
+    const cache = this.cacheManager as Cache & {
+      clear?: () => Promise<void>;
+      reset?: () => Promise<void>;
+    };
+
+    if (typeof cache.clear === 'function') {
+      await cache.clear();
+      return;
+    }
+
+    if (typeof cache.reset === 'function') {
+      await cache.reset();
+    }
   }
 
   private ensureCanManageProject(project: Project, user: User): void {

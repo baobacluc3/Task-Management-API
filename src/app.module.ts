@@ -30,14 +30,24 @@ import { CustomThrottlerGuard } from './common/guards/throttler.guard';
     CacheModule.registerAsync({
       isGlobal: true,
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        store: await redisStore({
-          socket: {
-            host: configService.get<string>('REDIS_HOST', 'localhost'),
-            port: configService.get<number>('REDIS_PORT', 6379),
-          },
-        }),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const useRedis =
+          configService.get<string>('USE_REDIS', 'true').toLowerCase() ===
+          'true';
+
+        if (!useRedis) {
+          return {};
+        }
+
+        return {
+          store: await redisStore({
+            socket: {
+              host: configService.get<string>('REDIS_HOST', 'localhost'),
+              port: configService.get<number>('REDIS_PORT', 6379),
+            },
+          }),
+        };
+      },
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],

@@ -89,6 +89,8 @@ DB_USERNAME=postgres
 DB_PASSWORD=postgres
 DB_NAME=task_management
 
+USE_REDIS=false
+
 REDIS_HOST=localhost
 REDIS_PORT=6379
 
@@ -120,10 +122,18 @@ Bạn có thể tạo DB bằng pgAdmin 4 (GUI) **hoặc** bằng lệnh `psql` 
 Sau đó đảm bảo PostgreSQL đang chạy trên host/port đã cấu hình trong `.env`
 (`localhost:5432` theo mặc định).
 
-### 3) Chuẩn bị Redis local
+### 3) (Tuỳ chọn) Redis local
 
-Đảm bảo Redis đang chạy trên `REDIS_HOST` / `REDIS_PORT` trong `.env`
-(`localhost:6379` theo mặc định). Ví dụ:
+Nếu muốn chạy **không cần Redis**, đặt:
+
+```env
+USE_REDIS=false
+```
+
+Khi đó app sẽ dùng in-memory cache và bạn có thể bỏ qua bước chạy Redis server.
+
+Nếu muốn dùng Redis, đặt `USE_REDIS=true` (mặc định) và chạy Redis trên
+`REDIS_HOST` / `REDIS_PORT` trong `.env` (thường là `localhost:6379`):
 
 ```bash
 redis-server
@@ -230,8 +240,9 @@ curl -X GET "http://localhost:3000/api/v1/projects/$PROJECT_ID/tasks?page=1&limi
 | `DB_NAME` | ✅ | - | PostgreSQL database name |
 | `JWT_SECRET` | ❌ | `secret` | Secret ký access token |
 | `JWT_REFRESH_SECRET` | ❌ | `refresh_secret` | Secret ký refresh token |
-| `REDIS_HOST` | ❌ | `localhost` | Redis host |
-| `REDIS_PORT` | ❌ | `6379` | Redis port |
+| `USE_REDIS` | ❌ | `true` | Bật/tắt Redis cache (`false` => dùng in-memory cache) |
+| `REDIS_HOST` | ❌ | `localhost` | Redis host (chỉ khi `USE_REDIS=true`) |
+| `REDIS_PORT` | ❌ | `6379` | Redis port (chỉ khi `USE_REDIS=true`) |
 | `SMTP_HOST` | ❌ | `localhost` | SMTP host |
 | `SMTP_PORT` | ❌ | `1025` | SMTP port |
 | `SMTP_SECURE` | ❌ | `false` | Bật/tắt TLS SMTP |
