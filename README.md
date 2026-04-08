@@ -76,6 +76,12 @@ API base URL mặc định: `http://localhost:3000/api/v1`
 
 ### 1) Cập nhật `.env` tối thiểu cho database
 
+Tạo file `.env` từ template:
+
+```bash
+cp .env.example .env
+```
+
 ```env
 DB_HOST=localhost
 DB_PORT=5432
